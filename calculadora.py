@@ -6,19 +6,15 @@ Escuela de postgrado Newman
 Autor: Daniel Chavez
 Maestria en Big Data
 '''
-def ingreso_estudiantes():
-    # Solicitar al usuario el número de estudiantes
-    while True:
-        try:
-            num_estudiantes = int(input("Ingrese el número de estudiantes: "))
-            if num_estudiantes <= 0:
-                print("El número de estudiantes debe ser mayor que cero.")
-                continue
-            return num_estudiantes
-        except ValueError:
-            print("Por favor, ingrese un número entero válido.")
 
-def ingreso_materias():
+def ingresar_calificaciones():
+    """
+    Función para ingresar los nombres de materias y sus calificaciones.
+    Retorna dos listas separadas: materias y calificaciones.
+    """
+    materias = []
+    calificaciones = []
+    
     # Solicitar al usuario el número de materias
     while True:
         try:
@@ -26,95 +22,121 @@ def ingreso_materias():
             if num_materias <= 0:
                 print("El número de materias debe ser mayor que cero.")
                 continue
-            
-            # Solicitar los nombres de cada materia
-            nombres_materias = []
-            num_evaluaciones = []
-            for i in range(num_materias):
-                nombre_materia = input(f"Ingrese el nombre de la materia {i + 1}: ")
-                nombres_materias.append(nombre_materia)
-                
-                # Solicitar el número de evaluaciones para esta materia
-                while True:
-                    try:
-                        n_eval = int(input(f"¿Cuántas evaluaciones tuvo en {nombre_materia}? "))
-                        if n_eval <= 0:
-                            print("El número de evaluaciones debe ser mayor que cero.")
-                            continue
-                        num_evaluaciones.append(n_eval)
-                        break
-                    except ValueError:
-                        print("Por favor, ingrese un número entero válido.")
-                
-            return num_materias, nombres_materias, num_evaluaciones
+            break
         except ValueError:
             print("Por favor, ingrese un número entero válido.")
-
-def ingreso_notas(num_materias, nombres_materias, num_evaluaciones, nombre_estudiante):
-    # Solicitar al usuario las notas de cada materia para un estudiante
-    notas_por_materia = []
+    
+    # Solicitar los nombres y calificaciones de cada materia
     for i in range(num_materias):
-        materia = nombres_materias[i]
-        evaluaciones = num_evaluaciones[i]
-        notas_materia = []
+        nombre_materia = input(f"Ingrese el nombre de la materia {i + 1}: ")
+        materias.append(nombre_materia)
         
-        print(f"\nIngresando notas de {materia} para {nombre_estudiante}:")
-        for j in range(evaluaciones):
-            while True:
-                try:
-                    nota = float(input(f"Ingrese la nota {j+1} de {evaluaciones}: "))
-                    if nota < 0 or nota > 10:
-                        print("La nota debe estar entre 0 y 10.")
-                        continue
-                    notas_materia.append(nota)
-                    break
-                except ValueError:
-                    print("Por favor, ingrese un número válido.")
-        
-        # Calcular promedio de la materia
-        promedio_materia = sum(notas_materia) / len(notas_materia)
-        notas_por_materia.append(promedio_materia)
-        
-    return notas_por_materia
+        # Solicitar la calificación para esta materia
+        while True:
+            try:
+                calificacion = float(input(f"Ingrese la calificación para {nombre_materia} (0-10): "))
+                if calificacion < 0 or calificacion > 10:
+                    print("La calificación debe estar entre 0 y 10.")
+                    continue
+                calificaciones.append(calificacion)
+                break
+            except ValueError:
+                print("Por favor, ingrese un número válido.")
+    
+    return materias, calificaciones
 
-def calcular_promedio(notas):
-    # Calcular el promedio de las notas
-    suma = sum(notas)
-    promedio = suma / len(notas)
-    return promedio
+def determinar_estado(calificaciones):
+    """
+    Determina el estado (aprobado/reprobado) de cada materia.
+    Recibe una lista de calificaciones y retorna una lista de estados.
+    """
+    estados = []
+    for calificacion in calificaciones:
+        if calificacion >= 5.0:  # Umbral de aprobación es 5.0
+            estados.append("Aprobado")
+        else:
+            estados.append("Reprobado")
+    return estados
 
-def mostrar_resultado_individual(nombre_estudiante, nombres_materias, notas):
-    # Mostrar resultados individuales por materia
-    print(f"\nCalificaciones de {nombre_estudiante}:")
-    for i in range(len(nombres_materias)):
-        materia = nombres_materias[i]
-        nota = notas[i]
-        estado = "Aprobado" if nota >= 7 else "Reprobado"
-        print(f"- {materia}: {nota:.2f} ({estado})")
+def encontrar_extremos(calificaciones):
+    """
+    Encuentra los índices de la calificación más alta y más baja.
+    Retorna una tupla (índice_máximo, índice_mínimo).
+    """
+    if not calificaciones:
+        return None, None
+    
+    max_indice = 0
+    min_indice = 0
+    max_valor = calificaciones[0]
+    min_valor = calificaciones[0]
+    
+    for i in range(len(calificaciones)):
+        if calificaciones[i] > max_valor:
+            max_valor = calificaciones[i]
+            max_indice = i
+        if calificaciones[i] < min_valor:
+            min_valor = calificaciones[i]
+            min_indice = i
+    
+    return max_indice, min_indice
 
-def mostrar_resultado_general(nombre_estudiante, promedio):
-    # Mostrar el resultado general al usuario
-    if promedio >= 7:
-        print(f"Promedio general de {nombre_estudiante}: {promedio:.2f}. ¡Felicidades, has aprobado!")
+def calcular_promedio(calificaciones):
+    """
+    Calcula el promedio de las calificaciones.
+    """
+    if not calificaciones:
+        return 0
+    return sum(calificaciones) / len(calificaciones)
+
+def mostrar_resultados(materias, calificaciones, estados, mejor_i, peor_i, promedio):
+    """
+    Muestra los resultados detallados de las calificaciones.
+    """
+    print("\n=== RESULTADOS ===")
+    
+    # Mostrar resultados por materia
+    print("\nCalificaciones por materia:")
+    for i in range(len(materias)):
+        materia = materias[i]
+        calificacion = calificaciones[i]
+        estado = estados[i]
+        print(f"- {materia}: {calificacion:.2f} ({estado})")
+    
+    # Mostrar mejor y peor materia
+    if mejor_i is not None and peor_i is not None:
+        print(f"\nMejor materia: {materias[mejor_i]} con {calificaciones[mejor_i]:.2f}")
+        print(f"Peor materia: {materias[peor_i]} con {calificaciones[peor_i]:.2f}")
+    
+    # Mostrar promedio general
+    print(f"\nPromedio general: {promedio:.2f}")
+    
+    # Mostrar resultado general
+    if promedio >= 5.0:
+        print("¡Felicidades! Has aprobado con un promedio satisfactorio.")
     else:
-        print(f"Promedio general de {nombre_estudiante}: {promedio:.2f}. Lo siento, has reprobado.")
+        print("Lo sentimos, no has alcanzado el promedio mínimo para aprobar.")
 
 def main():
-    # Función principal para ejecutar la calculadora
+    """
+    Función principal para ejecutar la calculadora de promedios escolares.
+    """
     print("Bienvenido a la calculadora de promedios escolares.")
     
-    num_estudiantes = ingreso_estudiantes()
-    num_materias, nombres_materias, num_evaluaciones = ingreso_materias()
+    # Ingresar materias y calificaciones
+    materias, calificaciones = ingresar_calificaciones()
     
-    # Procesar cada estudiante
-    for i in range(num_estudiantes):
-        nombre_estudiante = input(f"\nIngrese el nombre del estudiante {i + 1}: ")
-        notas = ingreso_notas(num_materias, nombres_materias, num_evaluaciones, nombre_estudiante)
-        promedio = calcular_promedio(notas)
-        
-        # Mostrar resultados del estudiante
-        mostrar_resultado_individual(nombre_estudiante, nombres_materias, notas)
-        mostrar_resultado_general(nombre_estudiante, promedio)
+    # Determinar estados (aprobado/reprobado)
+    estados = determinar_estado(calificaciones)
     
+    # Encontrar materias con mayor y menor calificación
+    mejor_i, peor_i = encontrar_extremos(calificaciones)
+    
+    # Calcular promedio general
+    promedio = calcular_promedio(calificaciones)
+    
+    # Mostrar resultados
+    mostrar_resultados(materias, calificaciones, estados, mejor_i, peor_i, promedio)
+
 if __name__ == "__main__":
     main()
